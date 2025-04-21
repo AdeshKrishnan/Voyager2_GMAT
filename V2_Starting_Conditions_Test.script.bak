@@ -59,7 +59,6 @@ GMAT V2.EulerAngleSequence = '321';
 
 
 
-
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -105,9 +104,9 @@ GMAT SunMJ2000Eq.Axes = MJ2000Eq;
 
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.468371467025572 0.152605459057072 ];
-GMAT DefaultOrbitView.Size = [ 0.5168236877523553 0.5310173697270472 ];
-GMAT DefaultOrbitView.RelativeZOrder = 93;
+GMAT DefaultOrbitView.UpperLeft = [ 0.4691275167785235 0.1536555142503098 ];
+GMAT DefaultOrbitView.Size = [ 0.5167785234899329 0.5315985130111525 ];
+GMAT DefaultOrbitView.RelativeZOrder = 49;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {V2, Earth, Mars, Jupiter, Neptune, Saturn, Uranus, Sun};
 GMAT DefaultOrbitView.CoordinateSystem = SunMJ2000Eq;
@@ -134,6 +133,21 @@ GMAT DefaultOrbitView.UseInitialView = On;
 GMAT DefaultOrbitView.StarCount = 7000;
 GMAT DefaultOrbitView.EnableStars = On;
 GMAT DefaultOrbitView.EnableConstellations = On;
+
+Create GroundTrackPlot DefaultGroundTrackPlot;
+GMAT DefaultGroundTrackPlot.SolverIterations = Current;
+GMAT DefaultGroundTrackPlot.UpperLeft = [ 0.003355704697986577 0 ];
+GMAT DefaultGroundTrackPlot.Size = [ 0.5 0.449814126394052 ];
+GMAT DefaultGroundTrackPlot.RelativeZOrder = 40;
+GMAT DefaultGroundTrackPlot.Maximized = false;
+GMAT DefaultGroundTrackPlot.Add = {V2};
+GMAT DefaultGroundTrackPlot.DataCollectFrequency = 1;
+GMAT DefaultGroundTrackPlot.UpdatePlotFrequency = 50;
+GMAT DefaultGroundTrackPlot.NumPointsToRedraw = 0;
+GMAT DefaultGroundTrackPlot.ShowPlot = true;
+GMAT DefaultGroundTrackPlot.MaxPlotPoints = 20000;
+GMAT DefaultGroundTrackPlot.CentralBody = Earth;
+GMAT DefaultGroundTrackPlot.TextureMap = 'ModifiedBlueMarble.jpg';
 
 
 %----------------------------------------

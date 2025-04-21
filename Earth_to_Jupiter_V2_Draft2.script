@@ -51,9 +51,6 @@ GMAT V2.AttitudeDisplayStateType = 'Quaternion';
 GMAT V2.AttitudeRateDisplayStateType = 'AngularVelocity';
 GMAT V2.AttitudeCoordinateSystem = EarthMJ2000Eq;
 GMAT V2.EulerAngleSequence = '321';
-%----------------------------------------
-%---------- Spacecraft
-%----------------------------------------
 
 Create Spacecraft InitSat;
 GMAT InitSat.DateFormat = UTCGregorian;
@@ -119,6 +116,7 @@ GMAT InitSat.EulerAngleSequence = '321';
 
 
 
+
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -135,7 +133,7 @@ GMAT NearJupiterProp_ForceModel.SRP.SRPModel = Spherical;
 GMAT NearJupiterProp_ForceModel.SRP.Nominal_Sun = 149597870.691;
 
 Create ForceModel EarthtoJupiterProp_ForceModel;
-GMAT EarthtoJupiterProp_ForceModel.CentralBody = Earth;
+GMAT EarthtoJupiterProp_ForceModel.CentralBody = Sun;
 GMAT EarthtoJupiterProp_ForceModel.PointMasses = {Earth, Jupiter, Luna, Mars, Mercury, Neptune, Pluto, Saturn, Sun, Uranus, Venus};
 GMAT EarthtoJupiterProp_ForceModel.Drag = None;
 GMAT EarthtoJupiterProp_ForceModel.SRP = On;
@@ -252,9 +250,9 @@ GMAT DC1.Algorithm = NewtonRaphson;
 
 Create OrbitView JupiterInertialView;
 GMAT JupiterInertialView.SolverIterations = Current;
-GMAT JupiterInertialView.UpperLeft = [ 0.6456375838926175 0.3060718711276332 ];
-GMAT JupiterInertialView.Size = [ 0.348993288590604 0.6790582403965304 ];
-GMAT JupiterInertialView.RelativeZOrder = 42;
+GMAT JupiterInertialView.UpperLeft = [ 0.6438450899031812 0.303970223325062 ];
+GMAT JupiterInertialView.Size = [ 0.3492392807745505 0.6786600496277916 ];
+GMAT JupiterInertialView.RelativeZOrder = 581;
 GMAT JupiterInertialView.Maximized = false;
 GMAT JupiterInertialView.Add = {V2, Luna, Earth, Jupiter, Sun};
 GMAT JupiterInertialView.CoordinateSystem = JupiterInertial;
@@ -284,9 +282,9 @@ GMAT JupiterInertialView.EnableConstellations = On;
 
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.0006711409395973154 0.3345724907063197 ];
-GMAT DefaultOrbitView.Size = [ 0.6429530201342282 0.6456009913258984 ];
-GMAT DefaultOrbitView.RelativeZOrder = 46;
+GMAT DefaultOrbitView.UpperLeft = [ 0.0006915629322268327 0.3325062034739454 ];
+GMAT DefaultOrbitView.Size = [ 0.6424619640387276 0.6451612903225806 ];
+GMAT DefaultOrbitView.RelativeZOrder = 585;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {V2, Earth, Mars, Jupiter, Neptune, Saturn, Uranus, Sun};
 GMAT DefaultOrbitView.CoordinateSystem = SunMJ2000Eq;
@@ -338,16 +336,14 @@ Create Variable RAAN AOP;
 
 
 
+
+
+
 %----------------------------------------
 %---------- Mission Sequence
 %----------------------------------------
 BeginMissionSequence;
 
-%---------------------------------------------------------
-%  First Target RAAN and AOP to get close to the moon
-%--------------------------------------------------------- 
-
-%  Set spacecraft required for reinizializatoin after coarse targeting.
 GMAT InitSat = V2;
 
 %  This target loop varies the injection orbit RAAN and AOP to align the line of apsides with the moon. 
@@ -361,11 +357,11 @@ Target 'Coarse Jupiter Target' DC1 {SolveMode = Solve, ExitMode = SaveAndContinu
    Vary 'Vary AOP' DC1(V2.AOP = 2.5, {Perturbation = 0.01, Lower = -9.999999e300, Upper = 9.999999e300, MaxStep = 2, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    
    %  Apply TOI
-   Maneuver 'Apply TOI' TCM(V2);
+   Maneuver 'Apply TCM' TCM(V2);
    
    %  Save variables for use in fine targeting loop
-   GMAT 'Save RAAN' RAAN = V2.RAAN;
-   GMAT 'Save AOP' AOP = V2.AOP;
+   GMAT 'Save RAAN' RAAN = InitSat.RAAN;
+   GMAT 'Save AOP' AOP = InitSat.AOP;
    
    
    %  Propagate to Apoapsis using point mass earth to avoid potential issues by impacting moon for now.
@@ -377,22 +373,16 @@ Target 'Coarse Jupiter Target' DC1 {SolveMode = Solve, ExitMode = SaveAndContinu
    
 EndTarget;  % For targeter DC1
 
-%---------------------------------------------------------
-%  Next Target RAAN,,AOP, and Transfer orbit Maneveur to 
-%  achieve desired B-plane 
-%---------------------------------------------------------  
+GMAT 'Equation2' V2 = InitSat;
 
-GMAT V2 = InitSat;
 %  This loop determines the precise values of RAAN, AOP, and TOI to acheive desired lunar orbit conditions;
 Target 'Fine Jupiter Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
-   
-   %  Vary parking orbit geometry using intial guess from coarse targeting
-   Vary 'Vary RAAN' DC1(V2.RAAN = RAAN, {Perturbation = .000001, Lower = -9.999999e300, Upper = 9.999999e300, MaxStep = 2, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary AOP' DC1(V2.AOP = AOP, {Perturbation = .000001, Lower = -9.999999e300, Upper = 9.999999e300, MaxStep = 2, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TOI.V' DC1(TCM.Element1 = 10, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.V' DC1(TCM.Element1 = 10, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.N' DC1(TCM.Element2 = 0, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.B' DC1(TCM.Element3 = 0, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    
    %  Apply TCM
-   Maneuver 'Apply TOI' TCM(V2);
+   Maneuver 'Apply TCM' TCM(V2);
    
    
    %  Propagate to Jupiter

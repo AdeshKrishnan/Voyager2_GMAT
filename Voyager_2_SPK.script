@@ -28,7 +28,7 @@ GMAT Voyager2.AtmosDensityScaleFactor = 1;
 GMAT Voyager2.ExtendedMassPropertiesModel = 'None';
 GMAT Voyager2.NAIFId = -32;
 GMAT Voyager2.NAIFIdReferenceFrame = -9009001;
-GMAT Voyager2.OrbitSpiceKernelName = {'C:\GMAT Missions\Voyager_2.m05016u.merged (1).bsp'};
+GMAT Voyager2.OrbitSpiceKernelName = {'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\Voyager_2.m05016u.merged (1).bsp'};
 GMAT Voyager2.OrbitColor = Red;
 GMAT Voyager2.TargetColor = Teal;
 GMAT Voyager2.OrbitErrorCovariance = [ 1e+70 0 0 0 0 0 ; 0 1e+70 0 0 0 0 ; 0 0 1e+70 0 0 0 ; 0 0 0 1e+70 0 0 ; 0 0 0 0 1e+70 0 ; 0 0 0 0 0 1e+70 ];
@@ -132,7 +132,7 @@ GMAT Starting_Conditions_Cartesian.UpperLeft = [ 0 0 ];
 GMAT Starting_Conditions_Cartesian.Size = [ 0.5993288590604027 0.7980173482032218 ];
 GMAT Starting_Conditions_Cartesian.RelativeZOrder = 331;
 GMAT Starting_Conditions_Cartesian.Maximized = false;
-GMAT Starting_Conditions_Cartesian.Filename = 'C:\GMAT Missions\Starting_Conditions_Cartesian.txt';
+GMAT Starting_Conditions_Cartesian.Filename = 'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\Starting_Conditions_Cartesian.txt';
 GMAT Starting_Conditions_Cartesian.Precision = 16;
 GMAT Starting_Conditions_Cartesian.Add = {Voyager2.UTCGregorian, Voyager2.SunMJ2000Eq.X, Voyager2.SunMJ2000Eq.Y, Voyager2.SunMJ2000Eq.Z, Voyager2.SunMJ2000Eq.VX, Voyager2.SunMJ2000Eq.VY, Voyager2.SunMJ2000Eq.VZ};
 GMAT Starting_Conditions_Cartesian.WriteHeaders = true;
@@ -167,6 +167,7 @@ Propagate SPKProp(Voyager2) {Voyager2.ElapsedDays = 7000};
 %----------------------------------------
 %---------- Mission Sequence
 %----------------------------------------
+
 
 
 

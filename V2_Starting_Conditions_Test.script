@@ -14,9 +14,9 @@ GMAT V2.DisplayStateType = Cartesian;
 GMAT V2.X = 140338129.195645;
 GMAT V2.Y = -49650023.0373715;
 GMAT V2.Z = -18769218.8181521;
-GMAT V2.VX = 24.09673784;
-GMAT V2.VY = 56.66190963;
-GMAT V2.VZ = 30.74998819;
+GMAT V2.VX = 13.67017803493411;
+GMAT V2.VY = 32.1445333212957;
+GMAT V2.VZ = 17.44459419721442;
 GMAT V2.DryMass = 850;
 GMAT V2.Cd = 2.2;
 GMAT V2.Cr = 1.8;
@@ -60,6 +60,10 @@ GMAT V2.EulerAngleSequence = '321';
 
 
 
+
+
+
+
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -67,15 +71,35 @@ GMAT V2.EulerAngleSequence = '321';
 Create ForceModel DefaultProp_ForceModel;
 GMAT DefaultProp_ForceModel.CentralBody = Earth;
 GMAT DefaultProp_ForceModel.PrimaryBodies = {Earth};
+GMAT DefaultProp_ForceModel.PointMasses = {Jupiter, Luna, Mars, Mercury, Neptune, Pluto, Saturn, Sun, Uranus, Venus};
 GMAT DefaultProp_ForceModel.Drag = None;
-GMAT DefaultProp_ForceModel.SRP = Off;
-GMAT DefaultProp_ForceModel.RelativisticCorrection = Off;
+GMAT DefaultProp_ForceModel.SRP = On;
+GMAT DefaultProp_ForceModel.RelativisticCorrection = On;
 GMAT DefaultProp_ForceModel.ErrorControl = RSSStep;
 GMAT DefaultProp_ForceModel.GravityField.Earth.Degree = 4;
 GMAT DefaultProp_ForceModel.GravityField.Earth.Order = 4;
 GMAT DefaultProp_ForceModel.GravityField.Earth.StmLimit = 100;
 GMAT DefaultProp_ForceModel.GravityField.Earth.PotentialFile = 'JGM2.cof';
 GMAT DefaultProp_ForceModel.GravityField.Earth.TideModel = 'None';
+GMAT DefaultProp_ForceModel.SRP.Flux = 1367;
+GMAT DefaultProp_ForceModel.SRP.SRPModel = Spherical;
+GMAT DefaultProp_ForceModel.SRP.Nominal_Sun = 149597870.691;
+
+Create ForceModel NearJupiter_ForceModel;
+GMAT NearJupiter_ForceModel.CentralBody = Jupiter;
+GMAT NearJupiter_ForceModel.PrimaryBodies = {Jupiter};
+GMAT NearJupiter_ForceModel.PointMasses = {Sun};
+GMAT NearJupiter_ForceModel.Drag = None;
+GMAT NearJupiter_ForceModel.SRP = On;
+GMAT NearJupiter_ForceModel.RelativisticCorrection = On;
+GMAT NearJupiter_ForceModel.ErrorControl = RSSStep;
+GMAT NearJupiter_ForceModel.GravityField.Jupiter.Degree = 2;
+GMAT NearJupiter_ForceModel.GravityField.Jupiter.Order = 2;
+GMAT NearJupiter_ForceModel.GravityField.Jupiter.StmLimit = 100;
+GMAT NearJupiter_ForceModel.GravityField.Jupiter.PotentialFile = 'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\1746025986242_juno_jupiter_grav (5).cof';
+GMAT NearJupiter_ForceModel.SRP.Flux = 1367;
+GMAT NearJupiter_ForceModel.SRP.SRPModel = Spherical;
+GMAT NearJupiter_ForceModel.SRP.Nominal_Sun = 149597870.691;
 
 %----------------------------------------
 %---------- Propagators
@@ -87,9 +111,34 @@ GMAT DefaultProp.Type = RungeKutta89;
 GMAT DefaultProp.InitialStepSize = 60;
 GMAT DefaultProp.Accuracy = 9.999999999999999e-12;
 GMAT DefaultProp.MinStep = 0.001;
-GMAT DefaultProp.MaxStep = 2700;
+GMAT DefaultProp.MaxStep = 27000;
 GMAT DefaultProp.MaxStepAttempts = 50;
 GMAT DefaultProp.StopIfAccuracyIsViolated = true;
+
+Create Propagator NearJupiter;
+GMAT NearJupiter.FM = NearJupiter_ForceModel;
+GMAT NearJupiter.Type = RungeKutta89;
+GMAT NearJupiter.InitialStepSize = 60;
+GMAT NearJupiter.Accuracy = 9.999999999999999e-12;
+GMAT NearJupiter.MinStep = 0.001;
+GMAT NearJupiter.MaxStep = 27000;
+GMAT NearJupiter.MaxStepAttempts = 50;
+GMAT NearJupiter.StopIfAccuracyIsViolated = true;
+
+%----------------------------------------
+%---------- Burns
+%----------------------------------------
+
+Create ImpulsiveBurn TCM_ToSaturn;
+GMAT TCM_ToSaturn.CoordinateSystem = Local;
+GMAT TCM_ToSaturn.Origin = Earth;
+GMAT TCM_ToSaturn.Axes = VNB;
+GMAT TCM_ToSaturn.Element1 = 0;
+GMAT TCM_ToSaturn.Element2 = 0;
+GMAT TCM_ToSaturn.Element3 = 0;
+GMAT TCM_ToSaturn.DecrementMass = false;
+GMAT TCM_ToSaturn.Isp = 300;
+GMAT TCM_ToSaturn.GravitationalAccel = 9.81;
 
 %----------------------------------------
 %---------- Coordinate Systems
@@ -99,15 +148,67 @@ Create CoordinateSystem SunMJ2000Eq;
 GMAT SunMJ2000Eq.Origin = Sun;
 GMAT SunMJ2000Eq.Axes = MJ2000Eq;
 
+Create CoordinateSystem SaturnInertial;
+GMAT SaturnInertial.Origin = Saturn;
+GMAT SaturnInertial.Axes = BodyInertial;
+
+Create CoordinateSystem JupiterInertial;
+GMAT JupiterInertial.Origin = Jupiter;
+GMAT JupiterInertial.Axes = BodyInertial;
+
+%----------------------------------------
+%---------- Solvers
+%----------------------------------------
+
+Create DifferentialCorrector DC1;
+GMAT DC1.ShowProgress = true;
+GMAT DC1.ReportStyle = Normal;
+GMAT DC1.ReportFile = 'DifferentialCorrectorDC1.data';
+GMAT DC1.MaximumIterations = 500;
+GMAT DC1.DerivativeMethod = ForwardDifference;
+GMAT DC1.Algorithm = NewtonRaphson;
+
 %----------------------------------------
 %---------- Subscribers
 %----------------------------------------
 
+Create OrbitView JupiterInertialView;
+GMAT JupiterInertialView.SolverIterations = Current;
+GMAT JupiterInertialView.UpperLeft = [ 0.6251682368775235 0.2594936708860759 ];
+GMAT JupiterInertialView.Size = [ 0.3492597577388964 0.6784810126582278 ];
+GMAT JupiterInertialView.RelativeZOrder = 535;
+GMAT JupiterInertialView.Maximized = false;
+GMAT JupiterInertialView.Add = {V2, Luna, Earth, Jupiter, Sun};
+GMAT JupiterInertialView.CoordinateSystem = JupiterInertial;
+GMAT JupiterInertialView.DrawObject = [ true true true true true ];
+GMAT JupiterInertialView.DataCollectFrequency = 1;
+GMAT JupiterInertialView.UpdatePlotFrequency = 50;
+GMAT JupiterInertialView.NumPointsToRedraw = 150;
+GMAT JupiterInertialView.ShowPlot = true;
+GMAT JupiterInertialView.MaxPlotPoints = 20000;
+GMAT JupiterInertialView.ShowLabels = true;
+GMAT JupiterInertialView.ViewPointReference = Jupiter;
+GMAT JupiterInertialView.ViewPointVector = [ 20000 20000 20000 ];
+GMAT JupiterInertialView.ViewDirection = Jupiter;
+GMAT JupiterInertialView.ViewScaleFactor = 100;
+GMAT JupiterInertialView.ViewUpCoordinateSystem = EarthMJ2000Eq;
+GMAT JupiterInertialView.ViewUpAxis = Z;
+GMAT JupiterInertialView.EclipticPlane = Off;
+GMAT JupiterInertialView.XYPlane = On;
+GMAT JupiterInertialView.WireFrame = Off;
+GMAT JupiterInertialView.Axes = On;
+GMAT JupiterInertialView.Grid = Off;
+GMAT JupiterInertialView.SunLine = Off;
+GMAT JupiterInertialView.UseInitialView = On;
+GMAT JupiterInertialView.StarCount = 7000;
+GMAT JupiterInertialView.EnableStars = On;
+GMAT JupiterInertialView.EnableConstellations = On;
+
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.468371467025572 0.152605459057072 ];
-GMAT DefaultOrbitView.Size = [ 0.5168236877523553 0.5310173697270472 ];
-GMAT DefaultOrbitView.RelativeZOrder = 93;
+GMAT DefaultOrbitView.UpperLeft = [ 0.1608344549125168 0.3784810126582279 ];
+GMAT DefaultOrbitView.Size = [ 0.6386271870794078 0.569620253164557 ];
+GMAT DefaultOrbitView.RelativeZOrder = 539;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {V2, Earth, Mars, Jupiter, Neptune, Saturn, Uranus, Sun};
 GMAT DefaultOrbitView.CoordinateSystem = SunMJ2000Eq;
@@ -135,10 +236,44 @@ GMAT DefaultOrbitView.StarCount = 7000;
 GMAT DefaultOrbitView.EnableStars = On;
 GMAT DefaultOrbitView.EnableConstellations = On;
 
+Create OrbitView SaturnIntertialView;
+GMAT SaturnIntertialView.SolverIterations = Current;
+GMAT SaturnIntertialView.UpperLeft = [ 0.4912516823687753 0 ];
+GMAT SaturnIntertialView.Size = [ 0.5 0.4506329113924051 ];
+GMAT SaturnIntertialView.RelativeZOrder = 531;
+GMAT SaturnIntertialView.Maximized = false;
+GMAT SaturnIntertialView.Add = {V2, Saturn};
+GMAT SaturnIntertialView.CoordinateSystem = SaturnInertial;
+GMAT SaturnIntertialView.DrawObject = [ true true ];
+GMAT SaturnIntertialView.DataCollectFrequency = 1;
+GMAT SaturnIntertialView.UpdatePlotFrequency = 50;
+GMAT SaturnIntertialView.NumPointsToRedraw = 0;
+GMAT SaturnIntertialView.ShowPlot = true;
+GMAT SaturnIntertialView.MaxPlotPoints = 20000;
+GMAT SaturnIntertialView.ShowLabels = true;
+GMAT SaturnIntertialView.ViewPointReference = Saturn;
+GMAT SaturnIntertialView.ViewPointVector = [ 20000 20000 20000 ];
+GMAT SaturnIntertialView.ViewDirection = Saturn;
+GMAT SaturnIntertialView.ViewScaleFactor = 50;
+GMAT SaturnIntertialView.ViewUpCoordinateSystem = EarthMJ2000Eq;
+GMAT SaturnIntertialView.ViewUpAxis = Z;
+GMAT SaturnIntertialView.EclipticPlane = Off;
+GMAT SaturnIntertialView.XYPlane = On;
+GMAT SaturnIntertialView.WireFrame = Off;
+GMAT SaturnIntertialView.Axes = On;
+GMAT SaturnIntertialView.Grid = Off;
+GMAT SaturnIntertialView.SunLine = Off;
+GMAT SaturnIntertialView.UseInitialView = On;
+GMAT SaturnIntertialView.StarCount = 7000;
+GMAT SaturnIntertialView.EnableStars = On;
+GMAT SaturnIntertialView.EnableConstellations = On;
 
 %----------------------------------------
 %---------- Mission Sequence
 %----------------------------------------
 
 BeginMissionSequence;
-Propagate DefaultProp(V2) {V2.ElapsedDays = 365};
+Propagate 'Prop to Jupiter SOI' DefaultProp(V2) {V2.Jupiter.RMAG = 48.2e6};
+Propagate 'Prop to Jupiter Periapsis' NearJupiter(V2) {V2.Jupiter.Periapsis, OrbitColor = [0 255 0]};
+
+

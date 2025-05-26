@@ -142,6 +142,8 @@ GMAT NearSaturn_ForceModel.SRP.Nominal_Sun = 149597870.691;
 
 
 
+
+
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -326,9 +328,9 @@ GMAT DC1.Algorithm = NewtonRaphson;
 
 Create OrbitView JupiterInertialView;
 GMAT JupiterInertialView.SolverIterations = Current;
-GMAT JupiterInertialView.UpperLeft = [ 0.6413189771197847 -40.55334987593052 ];
-GMAT JupiterInertialView.Size = [ 0.3492597577388964 0.6786600496277916 ];
-GMAT JupiterInertialView.RelativeZOrder = 963;
+GMAT JupiterInertialView.UpperLeft = [ 0.6406460296096904 -51.98248407643312 ];
+GMAT JupiterInertialView.Size = [ 0.3492597577388964 0.8710191082802548 ];
+GMAT JupiterInertialView.RelativeZOrder = 5;
 GMAT JupiterInertialView.Maximized = false;
 GMAT JupiterInertialView.Add = {V2, Luna, Earth, Jupiter, Sun};
 GMAT JupiterInertialView.CoordinateSystem = JupiterInertial;
@@ -358,9 +360,9 @@ GMAT JupiterInertialView.EnableConstellations = On;
 
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.03903095558546434 0.6004962779156328 ];
-GMAT DefaultOrbitView.Size = [ 0.6386271870794078 0.5694789081885856 ];
-GMAT DefaultOrbitView.RelativeZOrder = 1102;
+GMAT DefaultOrbitView.UpperLeft = [ 0.01413189771197846 0.4888535031847134 ];
+GMAT DefaultOrbitView.Size = [ 0.6386271870794078 0.7308917197452229 ];
+GMAT DefaultOrbitView.RelativeZOrder = 194;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {V2, Earth, Mars, Jupiter, Neptune, Saturn, Uranus, Sun};
 GMAT DefaultOrbitView.CoordinateSystem = SunMJ2000Eq;
@@ -390,9 +392,9 @@ GMAT DefaultOrbitView.EnableConstellations = On;
 
 Create OrbitView SaturnIntertialView;
 GMAT SaturnIntertialView.SolverIterations = Current;
-GMAT SaturnIntertialView.UpperLeft = [ 0.6251682368775235 0.4032258064516129 ];
-GMAT SaturnIntertialView.Size = [ 0.3257065948855989 0.5744416873449132 ];
-GMAT SaturnIntertialView.RelativeZOrder = 968;
+GMAT SaturnIntertialView.UpperLeft = [ 0.6742934051144011 0.5159235668789809 ];
+GMAT SaturnIntertialView.Size = [ 0.3257065948855989 0.7372611464968153 ];
+GMAT SaturnIntertialView.RelativeZOrder = 150;
 GMAT SaturnIntertialView.Maximized = false;
 GMAT SaturnIntertialView.Add = {V2, Saturn};
 GMAT SaturnIntertialView.CoordinateSystem = SaturnInertial;
@@ -420,10 +422,32 @@ GMAT SaturnIntertialView.StarCount = 7000;
 GMAT SaturnIntertialView.EnableStars = On;
 GMAT SaturnIntertialView.EnableConstellations = On;
 
+Create ReportFile DefaultReportFile;
+GMAT DefaultReportFile.SolverIterations = Current;
+GMAT DefaultReportFile.UpperLeft = [ 0 0 ];
+GMAT DefaultReportFile.Size = [ 0 0 ];
+GMAT DefaultReportFile.RelativeZOrder = 0;
+GMAT DefaultReportFile.Maximized = false;
+GMAT DefaultReportFile.Filename = 'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\deltaVreportfile.txt';
+GMAT DefaultReportFile.Precision = 16;
+GMAT DefaultReportFile.WriteHeaders = true;
+GMAT DefaultReportFile.LeftJustify = On;
+GMAT DefaultReportFile.ZeroFill = Off;
+GMAT DefaultReportFile.FixedWidth = true;
+GMAT DefaultReportFile.Delimiter = ' ';
+GMAT DefaultReportFile.ColumnWidth = 23;
+GMAT DefaultReportFile.WriteReport = true;
+
 %----------------------------------------
 %---------- Arrays, Variables, Strings
 %----------------------------------------
-Create Variable RAAN AOP;
+Create Variable RAAN AOP DeltaV_TCM_1 DeltaV_TCM_2 DeltaV_TCM_3 DeltaV_TCM_4;
+GMAT DeltaV_TCM_1 = 0;
+GMAT DeltaV_TCM_2 = 0;
+GMAT DeltaV_TCM_3 = 0;
+GMAT DeltaV_TCM_4 = 0;
+
+
 
 
 
@@ -513,6 +537,7 @@ Target 'TCM_1 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, Sho
    Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 14064.43680555556, {Tolerance = 10});
    
 EndTarget;  % For targeter DC1
+Report DefaultReportFile TCM_1.Element1 TCM_1.Element2 TCM_1.Element3;
 Target 'TCM_2 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
    Vary 'Vary TCM.V' DC1(TCM_2.Element1 = 0.0325113933952792, {Perturbation = 0.001, Lower = -5, Upper = 5, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Vary 'Vary TCM.N' DC1(TCM_2.Element2 = 0.007746007652081217, {Perturbation = 0.001, Lower = -1, Upper = 1, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
@@ -526,6 +551,7 @@ Target 'TCM_2 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, Sho
    Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 14842.55625, {Tolerance = 10});
    
 EndTarget;  % For targeter DC1
+Report DefaultReportFile TCM_2.Element1 TCM_2.Element2 TCM_2.Element3;
 Target 'TCM_3 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
    Vary 'Vary TCM.V' DC1(TCM_3.Element1 = 0.02971553684026436, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Vary 'Vary TCM.N' DC1(TCM_3.Element2 = 0.1589336757331543, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
@@ -536,6 +562,7 @@ Target 'TCM_3 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, Sho
    Achieve 'Achieve BdotR' DC1(V2.UranusInertial.BdotR = -87205.31, {Tolerance = 100});
    Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 16455.2493056, {Tolerance = 10});
 EndTarget;  % For targeter DC1
+Report DefaultReportFile TCM_3.Element1 TCM_3.Element2 TCM_3.Element3;
 
 Target 'TCM_4 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
    Vary 'Vary TCM.V' DC1(TCM_4.Element1 = -0.1050640581377803, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
@@ -547,5 +574,6 @@ Target 'TCM_4 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, Sho
    Achieve 'Achieve BdotR' DC1(V2.NeptuneInertial.BdotR = -41724.75, {Tolerance = 100});
    Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 17763.66, {Tolerance = 10});
 EndTarget;  % For targeter DC1
+Report DefaultReportFile TCM_4.Element1 TCM_4.Element2 TCM_4.Element3;
 
 Propagate 'Prop _ days' Interplanetary_Transfer_Prop(V2) {V2.ElapsedDays = 5000};

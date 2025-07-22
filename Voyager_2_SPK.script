@@ -77,18 +77,34 @@ GMAT DefaultProp_ForceModel.GravityField.Earth.TideModel = 'None';
 
 Create Propagator SPKProp;
 GMAT SPKProp.Type = SPK;
-GMAT SPKProp.StepSize = 86400;
+GMAT SPKProp.StepSize = 3600;
 GMAT SPKProp.CentralBody = Earth;
 GMAT SPKProp.EpochFormat = 'A1ModJulian';
 GMAT SPKProp.StartEpoch = 'EphemStart';
 
 %----------------------------------------
-%---------- Subscribers
+%---------- Coordinate Systems
 %----------------------------------------
 
 Create CoordinateSystem SunMJ2000Eq;
 GMAT SunMJ2000Eq.Origin = Sun;
 GMAT SunMJ2000Eq.Axes = MJ2000Eq;
+
+Create CoordinateSystem JupiterInertial;
+GMAT JupiterInertial.Origin = Jupiter;
+GMAT JupiterInertial.Axes = BodyInertial;
+
+Create CoordinateSystem SaturnInertial;
+GMAT SaturnInertial.Origin = Saturn;
+GMAT SaturnInertial.Axes = BodyInertial;
+
+Create CoordinateSystem UranusInertial;
+GMAT UranusInertial.Origin = Uranus;
+GMAT UranusInertial.Axes = BodyInertial;
+
+Create CoordinateSystem NeptuneInertial;
+GMAT NeptuneInertial.Origin = Neptune;
+GMAT NeptuneInertial.Axes = BodyInertial;
 
 %----------------------------------------
 %---------- Subscribers
@@ -96,9 +112,9 @@ GMAT SunMJ2000Eq.Axes = MJ2000Eq;
 
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.2496644295302013 0.4882280049566295 ];
-GMAT DefaultOrbitView.Size = [ 0.6456375838926175 0.4696406443618339 ];
-GMAT DefaultOrbitView.RelativeZOrder = 347;
+GMAT DefaultOrbitView.UpperLeft = [ 0.2474012474012474 0.4838709677419355 ];
+GMAT DefaultOrbitView.Size = [ 0.6458766458766458 0.4702233250620347 ];
+GMAT DefaultOrbitView.RelativeZOrder = 1619;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {Voyager2, Earth, Mars, Jupiter, Neptune, Saturn, Uranus, Sun};
 GMAT DefaultOrbitView.CoordinateSystem = SunMJ2000Eq;
@@ -145,14 +161,30 @@ GMAT Starting_Conditions_Cartesian.WriteReport = true;
 
 Create XYPlot XYPlot1;
 GMAT XYPlot1.SolverIterations = Current;
-GMAT XYPlot1.UpperLeft = [ 0.003355704697986577 0 ];
-GMAT XYPlot1.Size = [ 0.4422818791946309 0.3184634448574969 ];
-GMAT XYPlot1.RelativeZOrder = 345;
+GMAT XYPlot1.UpperLeft = [ 0.000693000693000693 0 ];
+GMAT XYPlot1.Size = [ 0.4421344421344421 0.3188585607940447 ];
+GMAT XYPlot1.RelativeZOrder = 1622;
 GMAT XYPlot1.Maximized = false;
 GMAT XYPlot1.XVariable = Voyager2.A1ModJulian;
 GMAT XYPlot1.YVariables = {Voyager2.SunMJ2000Eq.VMAG};
 GMAT XYPlot1.ShowGrid = true;
 GMAT XYPlot1.ShowPlot = true;
+
+Create ReportFile SPK_Periapsis_Parameters;
+GMAT SPK_Periapsis_Parameters.SolverIterations = Current;
+GMAT SPK_Periapsis_Parameters.UpperLeft = [ 0 0 ];
+GMAT SPK_Periapsis_Parameters.Size = [ 0 0 ];
+GMAT SPK_Periapsis_Parameters.RelativeZOrder = 0;
+GMAT SPK_Periapsis_Parameters.Maximized = false;
+GMAT SPK_Periapsis_Parameters.Filename = 'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\SPK_Periapsis_Parameters.txt';
+GMAT SPK_Periapsis_Parameters.Precision = 16;
+GMAT SPK_Periapsis_Parameters.WriteHeaders = true;
+GMAT SPK_Periapsis_Parameters.LeftJustify = On;
+GMAT SPK_Periapsis_Parameters.ZeroFill = Off;
+GMAT SPK_Periapsis_Parameters.FixedWidth = true;
+GMAT SPK_Periapsis_Parameters.Delimiter = ' ';
+GMAT SPK_Periapsis_Parameters.ColumnWidth = 23;
+GMAT SPK_Periapsis_Parameters.WriteReport = true;
 
 
 %----------------------------------------
@@ -160,13 +192,23 @@ GMAT XYPlot1.ShowPlot = true;
 %----------------------------------------
 
 BeginMissionSequence;
-Propagate SPKProp(Voyager2) {Voyager2.ElapsedDays = 7000};
+Propagate 'Prop to Jupiter' SPKProp(Voyager2) {Voyager2.Jupiter.Periapsis};
+Report 'Jupiter Periapsis Parameters' SPK_Periapsis_Parameters Voyager2.A1ModJulian Voyager2.JupiterInertial.BdotT Voyager2.JupiterInertial.BdotR Voyager2.Jupiter.RMAG;
+Propagate 'Prop to Saturn' SPKProp(Voyager2) {Voyager2.Saturn.Periapsis};
+Report 'Saturn Periapsis Parameters' SPK_Periapsis_Parameters Voyager2.A1ModJulian Voyager2.SaturnInertial.BdotT Voyager2.SaturnInertial.BdotR Voyager2.Saturn.RMAG;
+Propagate SPKProp(Voyager2) {Voyager2.Uranus.Periapsis};
+Report SPK_Periapsis_Parameters Voyager2.A1ModJulian Voyager2.UranusInertial.BdotT Voyager2.UranusInertial.BdotR Voyager2.Uranus.RMAG;
+Propagate SPKProp(Voyager2) {Voyager2.Neptune.Periapsis};
+Report SPK_Periapsis_Parameters Voyager2.A1ModJulian Voyager2.NeptuneInertial.BdotT Voyager2.NeptuneInertial.BdotR Voyager2.Neptune.RMAG;
+Propagate SPKProp(Voyager2) {Voyager2.ElapsedSecs = 100};
 
 
 
 %----------------------------------------
 %---------- Mission Sequence
 %----------------------------------------
+
+
 
 
 

@@ -143,6 +143,10 @@ GMAT NearSaturn_ForceModel.SRP.Nominal_Sun = 149597870.691;
 
 
 
+
+
+
+
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -327,9 +331,9 @@ GMAT DC1.Algorithm = NewtonRaphson;
 
 Create OrbitView JupiterInertialView;
 GMAT JupiterInertialView.SolverIterations = Current;
-GMAT JupiterInertialView.UpperLeft = [ 0.6406460296096904 -51.98248407643312 ];
-GMAT JupiterInertialView.Size = [ 0.3492597577388964 0.8710191082802548 ];
-GMAT JupiterInertialView.RelativeZOrder = 5;
+GMAT JupiterInertialView.UpperLeft = [ 0.6396396396396397 -40.65508684863524 ];
+GMAT JupiterInertialView.Size = [ 0.3492723492723493 0.8709677419354839 ];
+GMAT JupiterInertialView.RelativeZOrder = 1096;
 GMAT JupiterInertialView.Maximized = false;
 GMAT JupiterInertialView.Add = {V2, Luna, Earth, Jupiter, Sun};
 GMAT JupiterInertialView.CoordinateSystem = JupiterInertial;
@@ -359,9 +363,9 @@ GMAT JupiterInertialView.EnableConstellations = On;
 
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.01413189771197846 0.4888535031847134 ];
-GMAT DefaultOrbitView.Size = [ 0.6386271870794078 0.7308917197452229 ];
-GMAT DefaultOrbitView.RelativeZOrder = 194;
+GMAT DefaultOrbitView.UpperLeft = [ 0.01386001386001386 0.4875930521091811 ];
+GMAT DefaultOrbitView.Size = [ 0.6382536382536382 0.7307692307692307 ];
+GMAT DefaultOrbitView.RelativeZOrder = 1181;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {V2, Earth, Mars, Jupiter, Neptune, Saturn, Uranus, Sun};
 GMAT DefaultOrbitView.CoordinateSystem = SunMJ2000Eq;
@@ -391,9 +395,9 @@ GMAT DefaultOrbitView.EnableConstellations = On;
 
 Create OrbitView SaturnIntertialView;
 GMAT SaturnIntertialView.SolverIterations = Current;
-GMAT SaturnIntertialView.UpperLeft = [ 0.6742934051144011 0.5159235668789809 ];
-GMAT SaturnIntertialView.Size = [ 0.3257065948855989 0.7372611464968153 ];
-GMAT SaturnIntertialView.RelativeZOrder = 150;
+GMAT SaturnIntertialView.UpperLeft = [ 0.6735966735966736 0.5148883374689827 ];
+GMAT SaturnIntertialView.Size = [ 0.3257103257103257 0.7369727047146402 ];
+GMAT SaturnIntertialView.RelativeZOrder = 1101;
 GMAT SaturnIntertialView.Maximized = false;
 GMAT SaturnIntertialView.Add = {V2, Saturn};
 GMAT SaturnIntertialView.CoordinateSystem = SaturnInertial;
@@ -427,7 +431,7 @@ GMAT DefaultReportFile.UpperLeft = [ 0 0 ];
 GMAT DefaultReportFile.Size = [ 0 0 ];
 GMAT DefaultReportFile.RelativeZOrder = 0;
 GMAT DefaultReportFile.Maximized = false;
-GMAT DefaultReportFile.Filename = 'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\deltaVreportfile.txt';
+GMAT DefaultReportFile.Filename = 'C:\users\crossover\Documents\GitHub\Voyager2_GMAT\deltaVreportfile_replicated.txt';
 GMAT DefaultReportFile.Precision = 16;
 GMAT DefaultReportFile.WriteHeaders = true;
 GMAT DefaultReportFile.LeftJustify = On;
@@ -440,7 +444,14 @@ GMAT DefaultReportFile.WriteReport = true;
 %----------------------------------------
 %---------- Arrays, Variables, Strings
 %----------------------------------------
-Create Variable RAAN AOP;
+Create Variable RAAN AOP DeltaV_TCM_1 DeltaV_TCM_2 DeltaV_TCM_3 DeltaV_TCM_4;
+GMAT DeltaV_TCM_1 = 0;
+GMAT DeltaV_TCM_2 = 0;
+GMAT DeltaV_TCM_3 = 0;
+GMAT DeltaV_TCM_4 = 0;
+
+
+
 
 
 
@@ -482,92 +493,70 @@ BeginMissionSequence;
 
 GMAT InitSat = V2;
 
-%  This target loop varies the injection orbit RAAN and AOP to align the line of apsides with the moon. 
-%  This is a course target loop that ensurues the s/c is in the vicinity of the Moon at orbit apogee.  
-%  The RA and DEC contraints are applied in and Earth Moon rotating frame.  The x-axis points from Earth to Moon and
-%  the z-axis is normal to the plane of the lunar orbit about Earth.  In this frame, we RA = 0 and DEC = 0;
 Target 'RAAN and AOP Target' DC1 {SolveMode = Solve, ExitMode = SaveAndContinue, ShowProgressWindow = true};
-   
-   %  Vary parking orbit orientation
    Vary 'Vary RAAN' DC1(V2.RAAN = 37.81196267857057, {Perturbation = 0.01, Lower = -9.999999e300, Upper = 9.999999e300, MaxStep = 2, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Vary 'Vary AOP' DC1(V2.AOP = -46.2138151812018, {Perturbation = 0.01, Lower = -9.999999e300, Upper = 9.999999e300, MaxStep = 2, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   
-   %  Apply TOI
    Maneuver 'Apply TCM' TCM_1(V2);
-   
-   %  Save variables for use in fine targeting loop
    GMAT 'Save RAAN' RAAN = InitSat.RAAN;
    GMAT 'Save AOP' AOP = InitSat.AOP;
-   
-   
-   %  Propagate to Apoapsis using point mass earth to avoid potential issues by impacting moon for now.
    Propagate 'Prop To Jupiter' Interplanetary_Transfer_Prop(V2) {V2.Jupiter.Periapsis};
-   
-   %  Define the constraints that the line of apsides is aligned with moon
-   Achieve 'RA = 0' DC1(V2.EarthJupiterRot.RA = 0, {Tolerance = 0.1});
-   Achieve 'DEC = 0' DC1(V2.EarthJupiterRot.DEC = 0, {Tolerance = 0.1});
-   
+   Achieve 'RA = 0' DC1(V2.EarthJupiterRot.RA = 0, {Tolerance = 0.001});
+   Achieve 'DEC = 0' DC1(V2.EarthJupiterRot.DEC = 0, {Tolerance = 0.001});
 EndTarget;  % For targeter DC1
 
 GMAT 'Equation2' V2 = InitSat;
 
-%  This loop determines the precise values of RAAN, AOP, and TOI to acheive desired lunar orbit conditions;
 Target 'TCM_1 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
-   Vary 'Vary TCM.V' DC1(TCM_1.Element1 = 0.009424674335988134, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.N' DC1(TCM_1.Element2 = 0.005810927194078374, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.B' DC1(TCM_1.Element3 = -0.0007904470401235212, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   
-   %  Apply TCM
+   Vary 'Vary TCM.V' DC1(TCM_1.Element1 = 0.009423748991611138, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.N' DC1(TCM_1.Element2 = 0.005809857541499038, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.B' DC1(TCM_1.Element3 = -0.0007902910481075566, {Perturbation = 0.1, Lower = -10e300, Upper = 10e300, MaxStep = 5, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Maneuver 'Apply TCM_1' TCM_1(V2);
-   
-   
-   %  Propagate to Jupiter
    Propagate 'Prop to Jupiter SOI' Interplanetary_Transfer_Prop(V2) {V2.Jupiter.RMAG = 48.2e6, OrbitColor = [255 0 0]};
    Propagate 'Prop to Periapsis' NearJupiterProp(V2) {V2.Jupiter.Periapsis, OrbitColor = [0 255 0]};
-   
-   %  Define required final orbit parameters
-   Achieve 'Achieve BdotT' DC1(V2.JupiterInertial.BdotT = 1913212.28, {Tolerance = 100});
-   Achieve 'Achieve BdotR' DC1(V2.JupiterInertial.BdotR = 167664.27, {Tolerance = 100});
-   Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 14064.43680555556, {Tolerance = 10});
-   
+   Achieve 'Achieve BdotT' DC1(V2.JupiterInertial.BdotT = 1913212.28, {Tolerance = 0.001});
+   Achieve 'Achieve BdotR' DC1(V2.JupiterInertial.BdotR = 167664.27, {Tolerance = 0.001});
+   Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 14064.43680555556, {Tolerance = 0.001});
+   GMAT 'Set Variable DeltaV_TCM_1' DeltaV_TCM_1 = sqrt(TCM_1.Element1^2+TCM_1.Element2^2+TCM_1.Element3^2);
 EndTarget;  % For targeter DC1
-Report DefaultReportFile TCM_1.Element1 TCM_1.Element2 TCM_1.Element3;
+Report DefaultReportFile TCM_1.Element1 TCM_1.Element2 TCM_1.Element3 DeltaV_TCM_1;
+
 Target 'TCM_2 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
-   Vary 'Vary TCM.V' DC1(TCM_2.Element1 = 0.0325113933952792, {Perturbation = 0.001, Lower = -5, Upper = 5, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.N' DC1(TCM_2.Element2 = 0.007746007652081217, {Perturbation = 0.001, Lower = -1, Upper = 1, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.B' DC1(TCM_2.Element3 = -0.06675668565556811, {Perturbation = 0.001, Lower = -1, Upper = 1, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   
-   %  Apply TCM
+   Vary 'Vary TCM.V' DC1(TCM_2.Element1 = 0.03262505710687202, {Perturbation = 0.001, Lower = -5, Upper = 5, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.N' DC1(TCM_2.Element2 = 0.007348379060349207, {Perturbation = 0.001, Lower = -1, Upper = 1, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.B' DC1(TCM_2.Element3 = -0.06686215959015297, {Perturbation = 0.001, Lower = -1, Upper = 1, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Maneuver 'Apply TCM_2' TCM_2(V2);
    Propagate 'Prop to Saturn Periapsis' Interplanetary_Transfer_Prop(V2) {V2.Saturn.Periapsis};
-   Achieve 'Achieve BdotT' DC1(V2.SaturnInertial.BdotT = 324486.32, {Tolerance = 100});
-   Achieve 'Achieve BdotR' DC1(V2.SaturnInertial.BdotR = -173812.23, {Tolerance = 100});
-   Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 14842.55625, {Tolerance = 10});
-   
+   Achieve 'Achieve BdotT' DC1(V2.SaturnInertial.BdotT = 324486.32, {Tolerance = 0.001});
+   Achieve 'Achieve BdotR' DC1(V2.SaturnInertial.BdotR = -173812.23, {Tolerance = 0.001});
+   Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 14842.55625, {Tolerance = 0.001});
+   GMAT 'Set Variable DeltaV_TCM_2' DeltaV_TCM_2 = sqrt(TCM_2.Element1^2+TCM_2.Element2^2+TCM_2.Element3^2);
 EndTarget;  % For targeter DC1
-Report DefaultReportFile TCM_2.Element1 TCM_2.Element2 TCM_2.Element3;
+Report DefaultReportFile TCM_2.Element1 TCM_2.Element2 TCM_2.Element3 DeltaV_TCM_2;
+
 Target 'TCM_3 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
-   Vary 'Vary TCM.V' DC1(TCM_3.Element1 = 0.02971553684026436, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.N' DC1(TCM_3.Element2 = 0.1589336757331543, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.B' DC1(TCM_3.Element3 = -0.1636002233493659, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.V' DC1(TCM_3.Element1 = 0.02970692073910416, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.N' DC1(TCM_3.Element2 = 0.1609502542319661, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.B' DC1(TCM_3.Element3 = -0.1637684627515947, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Maneuver 'Apply TCM_3' TCM_3(V2);
    Propagate 'Prop to Uranus Periapsis' Interplanetary_Transfer_Prop(V2) {V2.Uranus.Periapsis};
-   Achieve 'Achieve BdotT' DC1(V2.UranusInertial.BdotT = 92533.50, {Tolerance = 100});
-   Achieve 'Achieve BdotR' DC1(V2.UranusInertial.BdotR = -87205.31, {Tolerance = 100});
+   Achieve 'Achieve BdotT' DC1(V2.UranusInertial.BdotT = 92533.50, {Tolerance = 0.001});
+   Achieve 'Achieve BdotR' DC1(V2.UranusInertial.BdotR = -87205.31, {Tolerance = 0.001});
    Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 16455.2493056, {Tolerance = 10});
+   GMAT 'Set Variable DeltaV_TCM_3' DeltaV_TCM_3 = sqrt(TCM_3.Element1^2+TCM_3.Element2^2+TCM_3.Element3^2);
 EndTarget;  % For targeter DC1
-Report DefaultReportFile TCM_3.Element1 TCM_3.Element2 TCM_3.Element3;
+Report DefaultReportFile TCM_3.Element1 TCM_3.Element2 TCM_3.Element3 DeltaV_TCM_3;
 
 Target 'TCM_4 Target' DC1 {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
-   Vary 'Vary TCM.V' DC1(TCM_4.Element1 = -0.1050640581377803, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.N' DC1(TCM_4.Element2 = -0.3455695260625894, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary 'Vary TCM.B' DC1(TCM_4.Element3 = 0.05899985980749196, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.V' DC1(TCM_4.Element1 = -0.1052232177740095, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.N' DC1(TCM_4.Element2 = -0.3455759694900582, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'Vary TCM.B' DC1(TCM_4.Element3 = 0.05882240791507383, {Perturbation = 0.001, Lower = -10, Upper = 10, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
    Maneuver 'Apply TCM_4' TCM_4(V2);
    Propagate 'Prop to Neptune Periapsis' Interplanetary_Transfer_Prop(V2) {V2.Neptune.Periapsis};
-   Achieve 'Achieve BdotT' DC1(V2.NeptuneInertial.BdotT = -27884.25, {Tolerance = 100});
-   Achieve 'Achieve BdotR' DC1(V2.NeptuneInertial.BdotR = -41724.75, {Tolerance = 100});
-   Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 17763.66, {Tolerance = 10});
+   Achieve 'Achieve BdotT' DC1(V2.NeptuneInertial.BdotT = -27884.25, {Tolerance = 0.001});
+   Achieve 'Achieve BdotR' DC1(V2.NeptuneInertial.BdotR = -41724.75, {Tolerance = 0.001});
+   Achieve 'Achieve Time Stamp' DC1(V2.A1ModJulian = 17763.66, {Tolerance = 0.001});
+   GMAT 'Set Variable DeltaV_TCM_4' DeltaV_TCM_4 = sqrt(TCM_4.Element1^2+TCM_4.Element2^2+TCM_4.Element3^2);
 EndTarget;  % For targeter DC1
-Report DefaultReportFile TCM_4.Element1 TCM_4.Element2 TCM_4.Element3;
+Report DefaultReportFile TCM_4.Element1 TCM_4.Element2 TCM_4.Element3 DeltaV_TCM_4;
 
 Propagate 'Prop _ days' Interplanetary_Transfer_Prop(V2) {V2.ElapsedDays = 5000};
